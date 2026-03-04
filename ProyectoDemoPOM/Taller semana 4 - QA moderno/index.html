@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Task Master App</title>
+  <style>
+    /* ─── Reset & Base ───────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 50%, #16213e 100%);
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      color: #e2e8f0;
+    }
+
+    /* ─── Card ───────────────────────────────────────────────────── */
+    .card {
+      width: min(480px, 94vw);
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 24px;
+      padding: 2.5rem 2rem;
+      box-shadow:
+        0 25px 50px rgba(0, 0, 0, 0.6),
+        0 0 0 1px rgba(255, 255, 255, 0.04) inset;
+    }
+
+    /* ─── Header ─────────────────────────────────────────────────── */
+    .header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .header h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      background: linear-gradient(90deg, #a78bfa, #60a5fa, #34d399);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: -0.5px;
+    }
+
+    .header p {
+      margin-top: 0.4rem;
+      font-size: 0.85rem;
+      color: #64748b;
+    }
+
+    /* ─── Input Row ──────────────────────────────────────────────── */
+    .input-row {
+      display: flex;
+      gap: 0.6rem;
+      margin-bottom: 1.8rem;
+    }
+
+    #task-input {
+      flex: 1;
+      padding: 0.75rem 1rem;
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 12px;
+      color: #f1f5f9;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    #task-input::placeholder { color: #475569; }
+
+    #task-input:focus {
+      border-color: #a78bfa;
+      box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.18);
+    }
+
+    #add-btn {
+      padding: 0.75rem 1.3rem;
+      background: linear-gradient(135deg, #7c3aed, #4f46e5);
+      border: none;
+      border-radius: 12px;
+      color: #fff;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.15s;
+      white-space: nowrap;
+    }
+
+    #add-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(124, 58, 237, 0.45);
+    }
+
+    #add-btn:active { transform: translateY(0); }
+
+    /* ─── Task Counter ───────────────────────────────────────────── */
+    .counter {
+      font-size: 0.78rem;
+      color: #64748b;
+      margin-bottom: 0.75rem;
+      padding-left: 0.25rem;
+    }
+
+    .counter span {
+      color: #a78bfa;
+      font-weight: 600;
+    }
+
+    /* ─── Empty State ────────────────────────────────────────────── */
+    .empty-state {
+      text-align: center;
+      padding: 2rem 0 1rem;
+      color: #334155;
+      font-size: 0.9rem;
+    }
+
+    /* ─── Task List ──────────────────────────────────────────────── */
+    /* ID "task-list" usado como localizador en los tests de Selenium */
+    #task-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.55rem;
+      max-height: 340px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    #task-list::-webkit-scrollbar { width: 4px; }
+    #task-list::-webkit-scrollbar-track { background: transparent; }
+    #task-list::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+
+    /* ─── Task Item ──────────────────────────────────────────────── */
+    #task-list li {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.85rem 1rem;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      border-radius: 12px;
+      transition: background 0.2s;
+      animation: slideIn 0.2s ease;
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(-8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    #task-list li:hover { background: rgba(255, 255, 255, 0.07); }
+
+    /* Ícono de check decorativo */
+    #task-list li::before {
+      content: '✓';
+      flex-shrink: 0;
+      width: 22px;
+      height: 22px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, #7c3aed22, #4f46e522);
+      border: 1px solid #7c3aed55;
+      border-radius: 6px;
+      font-size: 0.7rem;
+      color: #a78bfa;
+    }
+
+    .task-text {
+      flex: 1;
+      font-size: 0.95rem;
+      color: #e2e8f0;
+    }
+
+    /* ─── Delete Button ──────────────────────────────────────────── */
+    /* Clase "delete-btn" usada como localizador en los tests */
+    .delete-btn {
+      flex-shrink: 0;
+      width: 28px;
+      height: 28px;
+      display: grid;
+      place-items: center;
+      background: rgba(239, 68, 68, 0.12);
+      border: 1px solid rgba(239, 68, 68, 0.25);
+      border-radius: 8px;
+      color: #f87171;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+      line-height: 1;
+    }
+
+    .delete-btn:hover {
+      background: rgba(239, 68, 68, 0.3);
+      border-color: rgba(239, 68, 68, 0.6);
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+
+    <div class="header">
+      <h1>✦ Task Master</h1>
+      <p>Organiza tus tareas con estilo</p>
+    </div>
+
+    <!-- Input row: los IDs "task-input" y "add-btn" son los localizadores clave de Selenium -->
+    <div class="input-row">
+      <input id="task-input" type="text" placeholder="Escribe una nueva tarea…" autocomplete="off" />
+      <button id="add-btn">Agregar</button>
+    </div>
+
+    <p class="counter">Tareas: <span id="task-count">0</span></p>
+
+    <!-- La lista completa tiene id="task-list"; cada ítem <li> tiene un botón .delete-btn -->
+    <ul id="task-list"></ul>
+
+  </div>
+
+  <script>
+    const input     = document.getElementById('task-input');
+    const addBtn    = document.getElementById('add-btn');
+    const taskList  = document.getElementById('task-list');
+    const taskCount = document.getElementById('task-count');
+
+    function updateCounter() {
+      taskCount.textContent = taskList.querySelectorAll('li').length;
+    }
+
+    function addTask() {
+      const text = input.value.trim();
+      if (!text) return;
+
+      const li = document.createElement('li');
+
+      const span = document.createElement('span');
+      span.className = 'task-text';
+      span.textContent = text;
+
+      // Botón con clase "delete-btn" — localizador usado en los tests POM y tradicional
+      const btn = document.createElement('button');
+      btn.className   = 'delete-btn';
+      btn.textContent = '✕';
+      btn.setAttribute('aria-label', 'Eliminar tarea');
+      btn.addEventListener('click', () => {
+        li.remove();
+        updateCounter();
+      });
+
+      li.appendChild(span);
+      li.appendChild(btn);
+      taskList.appendChild(li);
+
+      input.value = '';
+      input.focus();
+      updateCounter();
+    }
+
+    addBtn.addEventListener('click', addTask);
+
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') addTask();
+    });
+  </script>
+</body>
+</html>

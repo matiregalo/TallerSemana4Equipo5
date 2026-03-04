@@ -1,0 +1,48 @@
+// ════════════════════════════════════════════════════════════════════════════
+//  build.gradle — Proyecto educativo: POM vs Automatización Tradicional
+//  Java 17 | Selenium 4 | WebDriverManager | JUnit 5
+// ════════════════════════════════════════════════════════════════════════════
+
+plugins {
+    id 'java'
+}
+
+group   = 'com.demo'
+version = '1.0.0'
+
+// ── Java 17 ──────────────────────────────────────────────────────────────────
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
+// ── Repositorios ─────────────────────────────────────────────────────────────
+repositories {
+    mavenCentral()
+}
+
+// ── Dependencias ─────────────────────────────────────────────────────────────
+dependencies {
+    // Selenium WebDriver: interacción con el navegador
+    testImplementation 'org.seleniumhq.selenium:selenium-java:4.27.0'
+
+    // WebDriverManager: descarga y configura el driver automáticamente
+    // Elimina la necesidad de gestionar versiones de chromedriver manualmente
+    testImplementation 'io.github.bonigarcia:webdrivermanager:5.9.2'
+
+    // JUnit 5: motor de pruebas con @Test, @BeforeEach, @AfterEach, Assertions
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.11.4'
+    testRuntimeOnly     'org.junit.platform:junit-platform-launcher:1.11.4'
+}
+
+// ── Configuración del motor de pruebas ───────────────────────────────────────
+tasks.named('test') {
+    useJUnitPlatform()
+
+    // Mostrar resultados de cada test en la consola
+    testLogging {
+        events 'passed', 'skipped', 'failed'
+        showStandardStreams = true
+    }
+}
+
